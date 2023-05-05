@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import CenterBoard from './CenterBoard';
-import MultilingualKeySet from './key-sets/MultilingualKeySet';
+// import MultilingualKeySet from './key-sets/MultilingualKeySet';
 import backspaceIcon from './assets/backspace-icon.svg';
 import returnIcon from './assets/return-icon.svg';
 import Key from './Key';
@@ -11,10 +11,13 @@ import SimpleKeyDefinition from '../../models/SimpleKeyDefinition';
 import sendKeyboardInput from '../../utils/sendKeyboardInput';
 import VoiceButton from './VoiceButton';
 import './styles.scss';
+import EnglishKeySet from "./key-sets/EnglishKeySet";
 
 export default class Keyboard extends Component {
 
-  private _keySet = new MultilingualKeySet();
+  private _keySet = new EnglishKeySet();
+
+
   state = {
     language: this._keySet.language,
     layout: this._keySet.layout,
@@ -46,7 +49,7 @@ export default class Keyboard extends Component {
         </div>
         <div className="board-margin"/>
         <div className="center-board-container">
-          <CenterBoard rows={this._keySet.getRows()} spacebarText={this._keySet.language}/>
+          <CenterBoard rows={this._keySet.getRows()} spacebarText={'_'/*this._keySet.language*/}/>
         </div>
         <div className="enter-key-area">
           <Key className="backspace-icon" definition={this._backspaceKeyDefinition}>
@@ -77,7 +80,7 @@ export default class Keyboard extends Component {
     // eslint-disable-next-line
     switch (data.type) {
       case MessageType.SET_LANGUAGE:
-        this._keySet.setLanguage(data.value);
+        // this._keySet.setLanguage(data.value);
         break;
       case MessageType.VOICE_RECOGNITION_DISABLED:
         this.setState({ voiceRecognitionEnabled: false });
