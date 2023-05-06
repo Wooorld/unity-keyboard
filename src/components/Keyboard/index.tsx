@@ -3,6 +3,7 @@ import CenterBoard from './CenterBoard';
 // import MultilingualKeySet from './key-sets/MultilingualKeySet';
 import backspaceIcon from './assets/backspace-icon.svg';
 import returnIcon from './assets/return-icon.svg';
+import dismissKeyboardIcon from './assets/noun-dismiss-keyboard.svg';
 import Key from './Key';
 import NumPad from './NumPad';
 import RightPad from './RightPad';
@@ -26,6 +27,10 @@ export default class Keyboard extends Component {
   };
   private _backspaceKeyDefinition = new SimpleKeyDefinition('Backspace', sendKeyboardInput);
   private _returnKeyDefinition = new SimpleKeyDefinition('Enter', sendKeyboardInput);
+  private _dismissKeyDefinition = new SimpleKeyDefinition('Dismiss', () => {
+    window.vuplex.postMessage({ type: MessageType.KEYBOARD_DISMISS });
+    console.log('dismiss')
+  });
 
   constructor(props) {
     super(props);
@@ -64,6 +69,11 @@ export default class Keyboard extends Component {
               </div>
             </Key>
           </div>
+
+          <Key className="dismiss-key" definition={this._dismissKeyDefinition}>
+            <img src={dismissKeyboardIcon} alt="dismiss"/>
+          </Key>
+
           {this._renderVoiceButton()}
         </div>
         <div className="right-pad-container">
