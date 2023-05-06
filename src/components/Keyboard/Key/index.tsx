@@ -12,11 +12,14 @@ enum KeyState {
 export default class Key extends Component<{ className?: string, definition: KeyDefinition }> {
 
   state = {
-    keyState: KeyState.NORMAL
+    keyState: KeyState.NORMAL,
+    isHover: false,
+    isHoverOffAnimation: false,
   };
   private _keyUpTimeoutId: any;
   private _keyDownTimeoutId: any;
   private _keyDownContinuouslyIntervalId: any;
+  private _keyHoverTimeoutId: any;
 
   componentWillUnmount() {
 
@@ -40,8 +43,11 @@ export default class Key extends Component<{ className?: string, definition: Key
         break;
     }
 
+    if (this.state.isHover) classNames.push('hover');
+    if (this.state.isHoverOffAnimation) classNames.push('hover-off');
+
     return (
-      <div className={classNames.join(' ')} onMouseDown={this._handleMouseDown} onMouseUp={this._handleMouseUp} onMouseLeave={this._handleMouseLeave}>
+      <div className={classNames.join(' ')} onMouseEnter={this._handleMouseEnter} onMouseDown={this._handleMouseDown} onMouseUp={this._handleMouseUp} onMouseLeave={this._handleMouseLeave}>
         {this.props.children || this.props.definition.value}
       </div>
     );
@@ -62,7 +68,7 @@ export default class Key extends Component<{ className?: string, definition: Key
     // After the key is continously held down for a second, start triggering the key every 100 ms.
     this._keyDownTimeoutId = setTimeout(() => {
       this.setState({ keyState: KeyState.DOWN_CONTINUOUSLY });
-      this._keyDownContinuouslyIntervalId = setInterval(this.props.definition.onClick, 100);
+      this._keyDownContinuouslyIntervalId = setInterval(this.props.definition.onClick, 50);
     }, 1000);
   }
 
@@ -73,6 +79,19 @@ export default class Key extends Component<{ className?: string, definition: Key
     if (keyState === KeyState.DOWN || keyState === KeyState.DOWN_CONTINUOUSLY) {
       this._clearTimers();
       this.setState({ keyState: KeyState.NORMAL });
+    }
+
+    this._keyHoverTimeoutId = setTimeout(() => {
+      this.setState({isHover: false});
+      this.setState({isHoverOffAnimation: true});
+    }, 50);
+  }
+
+  private _handleMouseEnter = () => {
+    clearTimeout(this._keyHoverTimeoutId);
+    if (!this.state.isHover) {
+      this.setState({isHover: true});
+      this.setState({isHoverOffAnimation: false});
     }
   }
 

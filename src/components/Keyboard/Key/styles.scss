@@ -10,8 +10,12 @@
     pointer-events: none; /* For the Oculus Go hover workaround. */
   }
 
-  &:hover, &.hover {
+  &.hover {
     background-color: lighten($keyboard-color, 15%);
+  }
+
+  &.hover-off {
+    animation: hover-off 0.4s;
   }
 
   &.key-down {
@@ -23,9 +27,18 @@
     animation: highlight 1s;
   }
 
+  @keyframes hover-off {
+    0% {
+      background-color: lighten($keyboard-color, 15%);
+    }
+    100% {
+      background-color: auto;
+    }
+  }
+
   @keyframes highlight {
     0% {
-      background-color: lighten($keyboard-color, 50%);
+      background-color: #3bf;
     }
     100% {
       background-color: auto;
