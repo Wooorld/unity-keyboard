@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import KeyDefinition from '../../../models/KeyDefinition';
 import './styles.scss';
+import MessageType from '../../../models/MessageType';
 
 enum KeyState {
   DOWN,
@@ -10,20 +11,99 @@ enum KeyState {
 };
 
 export default class Key extends Component<{ className?: string, definition: KeyDefinition }> {
-
   state = {
     keyState: KeyState.NORMAL,
+    hoverPointers: {},
     isHover: false,
-    isHoverOffAnimation: false,
   };
+
+  rect = {
+      bottom: 0,
+      left: 0,
+      right: 0,
+      top: 0,
+  };
+
+  constructor(props) {
+      super(props);
+      this._handleRef = this._handleRef.bind(this);
+  }
+
   private _keyUpTimeoutId: any;
   private _keyDownTimeoutId: any;
   private _keyDownContinuouslyIntervalId: any;
-  private _keyHoverTimeoutId: any;
+  // private _keyHoverTimeoutId: any;
+
+  componentDidMount() {
+    if (window.vuplex) {
+      this._initMessages();
+    } else {
+      window.addEventListener('vuplexready', this._initMessages);
+    }
+  }
+
+  private _initMessages = () => {
+    window.vuplex.addEventListener('message', this._handleReceivedMessage);
+  }
+
+    private _handleReceivedMessage = (message) => {
+        const data = JSON.parse(message.data);
+
+        if (data.type === MessageType.POINTER_MOVE) {
+            const {handedness, x, y, /*pointerId*/} = data.data;
+            const {top, left, bottom, right} = this.rect;
+
+            const hoverPointers = this.state.hoverPointers;
+
+            if (top < y && bottom > y && left < x && right > x) {
+                if (!hoverPointers[handedness]) {
+                    // console.log(pointerId, 'ON')
+                    window.vuplex.postMessage({
+                        type: MessageType.POINTER_ENTER,
+                        value: handedness,
+                    })
+
+                    this.setState({
+                        hoverPointers: {...hoverPointers, [handedness]: handedness},
+                        isHover: true,
+                    });
+                }
+            } else {
+                if (hoverPointers[handedness]) {
+                    delete hoverPointers[handedness];
+                    // console.log(pointerId, 'OFF')
+                    window.vuplex.postMessage({
+                        Type: MessageType.POINTER_LEAVE,
+                        Value: handedness,
+                    })
+
+                    if (!Object.keys(hoverPointers).length) {
+                        this.setState({
+                            isHover: false,
+                        })
+
+                        // Handle the case where mousedown occurs in one key but mouseup occurs in a different key.
+                        const {keyState} = this.state;
+                        if (keyState === KeyState.DOWN || keyState === KeyState.DOWN_CONTINUOUSLY) {
+                            this._clearTimers();
+                            this.setState({keyState: KeyState.NORMAL});
+                        }
+
+                    }
+                }
+            }
+
+        }
+
+    }
+
+  private _handleRef(el) {
+      this.rect = el && el.getBoundingClientRect();
+  }
 
   componentWillUnmount() {
-
     this._clearTimers();
+    window.vuplex.removeEventListener('message', this._handleReceivedMessage);
   }
 
   render() {
@@ -44,10 +124,14 @@ export default class Key extends Component<{ className?: string, definition: Key
     }
 
     if (this.state.isHover) classNames.push('hover');
-    if (this.state.isHoverOffAnimation) classNames.push('hover-off');
 
     return (
-      <div className={classNames.join(' ')} onMouseEnter={this._handleMouseEnter} onMouseDown={this._handleMouseDown} onMouseUp={this._handleMouseUp} onMouseLeave={this._handleMouseLeave}>
+      <div
+          className={classNames.join(' ')}
+          onMouseDown={this._handleMouseDown}
+          onMouseUp={this._handleMouseUp}
+          ref={this._handleRef}
+      >
         {this.props.children || this.props.definition.value}
       </div>
     );
@@ -65,39 +149,22 @@ export default class Key extends Component<{ className?: string, definition: Key
     this._clearTimers();
     this.setState({ keyState: KeyState.DOWN });
     this.props.definition.onClick();
-    // After the key is continously held down for a second, start triggering the key every 100 ms.
+
+      window.vuplex.postMessage({
+          type: MessageType.KEY_DOWN,
+          value: Object.keys(this.state.hoverPointers)[0], // This may be incorrect if both pointers are hovering
+      })
+
+    // After the key is continously held down for a second, start triggering the key every 50 ms.
     this._keyDownTimeoutId = setTimeout(() => {
       this.setState({ keyState: KeyState.DOWN_CONTINUOUSLY });
       this._keyDownContinuouslyIntervalId = setInterval(this.props.definition.onClick, 50);
     }, 1000);
   }
 
-  private _handleMouseLeave = () => {
-
-    // Handle the case where mousedown occurs in one key but mouseup occurs in a different key.
-    const { keyState } = this.state;
-    if (keyState === KeyState.DOWN || keyState === KeyState.DOWN_CONTINUOUSLY) {
-      this._clearTimers();
-      this.setState({ keyState: KeyState.NORMAL });
-    }
-
-    this._keyHoverTimeoutId = setTimeout(() => {
-      this.setState({isHover: false});
-      this.setState({isHoverOffAnimation: true});
-    }, 50);
-  }
-
-  private _handleMouseEnter = () => {
-    clearTimeout(this._keyHoverTimeoutId);
-    if (!this.state.isHover) {
-      this.setState({isHover: true});
-      this.setState({isHoverOffAnimation: false});
-    }
-  }
-
   private _handleMouseUp = () => {
 
-    this._clearTimers();
+      this._clearTimers();
     this.setState({ keyState: KeyState.UP });
     this._keyUpTimeoutId = setTimeout(() => this.setState({ keyState: KeyState.NORMAL }), 1000);
   }

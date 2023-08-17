@@ -3,6 +3,10 @@ enum MessageType {
   /**
   * Incoming messages
   */
+  POINTER_MOVE = 'pointerMove',
+  KEY_DOWN = 'keyboard.keyDown',
+  POINTER_ENTER = 'pointerEnter',
+  POINTER_LEAVE = 'pointerLeave',
   SET_LANGUAGE = 'keyboard.setLanguage',
   VOICE_RECOGNITION_DISABLED = 'keyboard.voiceRecognitionDisabled',
   VOICE_RECOGNITION_ENABLED = 'keyboard.voiceRecognitionEnabled',
