@@ -14,6 +14,7 @@ export default class RightPad extends Component {
   render() {
     return (
       <div className="right-pad">
+        {this.props.children}
         <div className="key-area">
           <div className="right-key-area">
             <div className="arrow-pad">

@@ -22,7 +22,7 @@ export default class Keyboard extends Component {
   state = {
     language: this._keySet.language,
     layout: this._keySet.layout,
-    voiceRecognitionEnabled: false,
+    voiceRecognitionEnabled: true,
     voiceRecognitionActive: false
   };
   private _backspaceKeyDefinition = new SimpleKeyDefinition('Backspace', sendKeyboardInput);
@@ -56,10 +56,12 @@ export default class Keyboard extends Component {
         <div className="center-board-container">
           <CenterBoard rows={this._keySet.getRows()} spacebarText={'_'/*this._keySet.language*/}/>
         </div>
+
         <div className="enter-key-area">
           <Key className="backspace-icon" definition={this._backspaceKeyDefinition}>
             <img src={backspaceIcon} alt="backspace"/>
           </Key>
+
           <div className="return-key-container">
             <Key definition={this._returnKeyDefinition} className="return-key-component">
               <div className="return-key">
@@ -74,10 +76,11 @@ export default class Keyboard extends Component {
             <img src={dismissKeyboardIcon} alt="dismiss"/>
           </Key>
 
-          {this._renderVoiceButton()}
         </div>
         <div className="right-pad-container">
-          <RightPad/>
+          <RightPad>
+            {this._renderVoiceButton()}
+          </RightPad>
         </div>
       </div>
     );
