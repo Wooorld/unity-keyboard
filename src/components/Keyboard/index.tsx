@@ -115,10 +115,8 @@ export default class Keyboard extends Component {
   private _handleVoiceButtonMouseDown = (event) => {
 
     event.preventDefault();
-    const voiceRecognitionActive = !this.state.voiceRecognitionActive;
-    this.setState({ voiceRecognitionActive });
     window.vuplex.postMessage({
-      type: voiceRecognitionActive ? MessageType.VOICE_RECOGNITION_START_REQUESTED : MessageType.VOICE_RECOGNITION_FINISH_REQUESTED
+      type: !this.state.voiceRecognitionActive ? MessageType.VOICE_RECOGNITION_START_REQUESTED : MessageType.VOICE_RECOGNITION_FINISH_REQUESTED
     });
   }
 
