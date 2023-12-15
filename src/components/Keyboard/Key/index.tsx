@@ -10,7 +10,7 @@ enum KeyState {
   NORMAL
 };
 
-export default class Key extends Component<{ className?: string, definition: KeyDefinition }> {
+export default class Key extends Component<{ className?: string, definition: KeyDefinition, preventRepeat?: boolean }> {
   state = {
     keyState: KeyState.NORMAL,
     hoverPointers: {},
@@ -150,16 +150,19 @@ export default class Key extends Component<{ className?: string, definition: Key
     this.setState({ keyState: KeyState.DOWN });
     this.props.definition.onClick();
 
-      window.vuplex.postMessage({
-          type: MessageType.KEY_DOWN,
-          value: Object.keys(this.state.hoverPointers)[0], // This may be incorrect if both pointers are hovering
-      })
+    window.vuplex.postMessage({
+      type: MessageType.KEY_DOWN,
+      value: Object.keys(this.state.hoverPointers)[0], // This may be incorrect if both pointers are hovering
+    })
 
-    // After the key is continously held down for a second, start triggering the key every 50 ms.
-    this._keyDownTimeoutId = setTimeout(() => {
-      this.setState({ keyState: KeyState.DOWN_CONTINUOUSLY });
-      this._keyDownContinuouslyIntervalId = setInterval(this.props.definition.onClick, 50);
-    }, 1000);
+    if (!this.props.preventRepeat){
+      // After the key is continously held down for a second, start triggering the key every 50 ms.
+      this._keyDownTimeoutId = setTimeout(() => {
+        this.setState({ keyState: KeyState.DOWN_CONTINUOUSLY });
+        this._keyDownContinuouslyIntervalId = setInterval(this.props.definition.onClick, 50);
+      }, 1000);
+    }
+
   }
 
   private _handleMouseUp = () => {

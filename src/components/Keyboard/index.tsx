@@ -72,7 +72,7 @@ export default class Keyboard extends Component {
             </Key>
           </div>
 
-          <Key className="dismiss-key" definition={this._dismissKeyDefinition}>
+          <Key className="dismiss-key" definition={this._dismissKeyDefinition} preventRepeat>
             <img src={dismissKeyboardIcon} alt="dismiss"/>
           </Key>
 
