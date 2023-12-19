@@ -63,7 +63,7 @@ export default class Keyboard extends Component {
           </Key>
 
           <div className="return-key-container">
-            <Key definition={this._returnKeyDefinition} className="return-key-component">
+            <Key definition={this._returnKeyDefinition} className="return-key-component" preventRepeat>
               <div className="return-key">
                 <div className="return-key-text">
                   <img src={returnIcon} alt="return"/>
