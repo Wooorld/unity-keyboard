@@ -46,56 +46,65 @@ export default class Key extends Component<{ className?: string, definition: Key
     window.vuplex.addEventListener('message', this._handleReceivedMessage);
   }
 
-    private _handleReceivedMessage = (message) => {
-        const data = JSON.parse(message.data);
+  private _handleReceivedMessage = (message) => {
+    const data = JSON.parse(message.data);
+    const hoverPointers = this.state.hoverPointers;
 
-        if (data.type === MessageType.POINTER_MOVE) {
-            const {handedness, x, y, /*pointerId*/} = data.data;
-            const {top, left, bottom, right} = this.rect;
+    const pointerUp = (handedness: string) => {
+      if (hoverPointers[handedness]) {
+        delete hoverPointers[handedness];
+        // console.log(pointerId, 'OFF')
+        window.vuplex.postMessage({
+          Type: MessageType.POINTER_LEAVE,
+          Value: handedness,
+        });
 
-            const hoverPointers = this.state.hoverPointers;
+        if (!Object.keys(hoverPointers).length) {
+          this.setState({
+            isHover: false,
+          });
 
-            if (top < y && bottom > y && left < x && right > x) {
-                if (!hoverPointers[handedness]) {
-                    // console.log(pointerId, 'ON')
-                    window.vuplex.postMessage({
-                        type: MessageType.POINTER_ENTER,
-                        value: handedness,
-                    })
-
-                    this.setState({
-                        hoverPointers: {...hoverPointers, [handedness]: handedness},
-                        isHover: true,
-                    });
-                }
-            } else {
-                if (hoverPointers[handedness]) {
-                    delete hoverPointers[handedness];
-                    // console.log(pointerId, 'OFF')
-                    window.vuplex.postMessage({
-                        Type: MessageType.POINTER_LEAVE,
-                        Value: handedness,
-                    })
-
-                    if (!Object.keys(hoverPointers).length) {
-                        this.setState({
-                            isHover: false,
-                        })
-
-                        // Handle the case where mousedown occurs in one key but mouseup occurs in a different key.
-                        const {keyState} = this.state;
-                        if (keyState === KeyState.DOWN || keyState === KeyState.DOWN_CONTINUOUSLY) {
-                            this._clearTimers();
-                            this.setState({keyState: KeyState.NORMAL});
-                        }
-
-                    }
-                }
-            }
+          // Handle the case where mousedown occurs in one key but mouseup occurs in a different key.
+          const {keyState} = this.state;
+          if (keyState === KeyState.DOWN || keyState === KeyState.DOWN_CONTINUOUSLY) {
+            this._clearTimers();
+            this.setState({keyState: KeyState.NORMAL});
+          }
 
         }
+      }
+    };
+
+    if (data.type === MessageType.KEYBOARD_CLOSED) {
+      console.log('close', hoverPointers);
+      ['Left', 'Right'].forEach(pointerUp);
+    }
+
+    if (data.type === MessageType.POINTER_MOVE) {
+      const {handedness, x, y /*pointerId*/} = data.data;
+      const {top, left, bottom, right} = this.rect;
+
+
+      if (top < y && bottom > y && left < x && right > x) {
+        if (!hoverPointers[handedness]) {
+          // console.log(pointerId, 'ON')
+          window.vuplex.postMessage({
+            type: MessageType.POINTER_ENTER,
+            value: handedness,
+          });
+
+          this.setState({
+            hoverPointers: {...hoverPointers, [handedness]: handedness},
+            isHover: true,
+          });
+        }
+      } else {
+        pointerUp(handedness);
+      }
 
     }
+
+  };
 
   private _handleRef(el) {
       this.rect = el && el.getBoundingClientRect();

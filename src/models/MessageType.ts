@@ -19,6 +19,7 @@ enum MessageType {
   INPUT_RECEIVED = 'keyboard.inputReceived',
   KEYBOARD_DISMISS = 'keyboard.dismiss',
   KEYBOARD_INITIALIZED = 'keyboard.initialized',
+  KEYBOARD_CLOSED = 'keyboard.onClose',
   VOICE_RECOGNITION_FINISH_REQUESTED = 'keyboard.voiceRecognitionFinishRequested',
   VOICE_RECOGNITION_START_REQUESTED = 'keyboard.voiceRecognitionStartRequested',
 };
